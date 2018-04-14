@@ -1,0 +1,23 @@
+<div class="container minimalist-form">
+  <h2 class="form-signin-heading minimalist-heading">Sign in</h2>
+  <%= form_for(resource, as: resource_name, url: session_path(resource_name), html: {class: "form-signin spacing"}) do |f| %>
+
+    <%if flash.count > 0 %>
+      <%if !flash.now["notice"]%>
+        <div class="alert alert-danger">
+          <strong><%=flash.now["alert"]%></strong>
+        </div>
+      <%end%>
+    <%end%>
+
+    <%= f.email_field :email, autofocus: true, class: 'form-control', placeholder: 'Email Address' %></br>
+
+    <%= f.password_field :password, autocomplete: "off", class: 'form-control', placeholder: 'Password' %>
+
+    <% if devise_mapping.rememberable? %></br>
+      <label><%= f.check_box :remember_me, label: false %> Remember me </label></br>
+    <% end %>
+
+    <%= f.button "Sign in", class: 'btn btn-secondary minimalist-button' %></br>
+  <% end %>
+</div>

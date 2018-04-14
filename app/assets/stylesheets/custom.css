@@ -1,0 +1,15 @@
+
+#speech-container{
+  width: 80%;
+}
+
+#speech{
+  margin-left: 15%;
+  margin-top: 20px;
+}
+
+#speech-text{
+  margin-top: 10px;
+  border: 1px solid;
+  font-size: 22px;
+}
