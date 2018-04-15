@@ -61,7 +61,7 @@ module SpeechResultsHelper
       fear: image_results[:fear_avg],
       happiness: image_results[:happiness_avg],
       neutral: image_results[:neutral_avg],
-      surprise: image_results[:surprise_avg],
+      surprise: image_results[:surprise_avg]
     }
   end
 
