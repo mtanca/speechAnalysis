@@ -4,12 +4,14 @@ module SpeechResultsHelper
     verify_ssl: OpenSSL::SSL::VERIFY_NONE
   }.freeze
 
+  KEYWORD_ENDPOINT = 'https://gateway-a.watsonplatform.net/calls/text/TextGetRankedKeywords'
+
   def parse_tone_result(array, target)
-    array.map {|tone| target.write_attribute(tone["tone_name"].downcase.split.join('_').to_sym, tone["score"])}
+    array.map { |tone| target.write_attribute(tone["tone_name"].downcase.split.join('_').to_sym, tone["score"]) }
   end
 
   def get_tone(text)
-    TONE_ENDPOINT_SUFFIX = "@gateway.watsonplatform.net/tone-analyzer/api/v3/tone?version=2016-05-19&text="
+    TONE_ENDPOINT_SUFFIX = '@gateway.watsonplatform.net/tone-analyzer/api/v3/tone?version=2016-05-19&text='
     tone_endpoint = "https://#{ENV["WATSON_TONE_USER"]}:#{ENV["WATSON_TONE_PW"]}#{TONE_ENDPOINT_SUFFIX}#{text}"
 
     JSON.parse(RestClient.get(tone_endpoint))
@@ -23,15 +25,19 @@ module SpeechResultsHelper
     results
   end
 
+  def get_taxonomy_results(service)
+    service.TextGetRankedTaxonomy_get(text: text, outputMode: "json")
+  end
+
   def taxonomy_results(text)
     service = WatsonAPIClient::AlchemyLanguage.new(ALECHEMY_OPTIONS)
-    response = service.TextGetRankedTaxonomy_get(text: text, outputMode:"json")
-    result = JSON.parse(result.body)
+    response = get_taxonomy_results(service)
+    result = JSON.parse(response.body)
 
     result["taxonomy"]
   end
 
-  def keyword_results(text)
+  def keyword_options(text)
     KEYWORD_OPTIONS = {
       text: text,
       apikey: ENV["WATSON_API_KEY"],
@@ -39,34 +45,23 @@ module SpeechResultsHelper
       sentiment: 1,
       emotion: 1
     }.freeze
+  end
 
-    keyword_endpoint = "https://gateway-a.watsonplatform.net/calls/text/TextGetRankedKeywords"
-    results = JSON.parse(RestClient.post(keyword_endpoint, KEYWORD_OPTIONS).body)
+  def keyword_results(text)
+    results = JSON.parse(RestClient.post(KEYWORD_ENDPOINT, keyword_options(text)).body)
 
     results["keywords"]
   end
 
-  def handle_results(speech_result, image_results)
-    if speech_result.generate_analysis(speech_result.transcript.gsub(/\P{ASCII}/, "")) && speech_result.keywords.any?
-      add_image_results(speech_result, image_results)
-
-      render json: speech_result, include: create_options
-    else
-      speech_result.destroy
-
-      render json: { errors: "Forbidden" }, status: 403
-    end
-  end
-
   def add_image_results(speech_result, image_results)
     speech_result.image_emotions = {
-      anger: users_image_results[:anger_avg],
-      contempt: users_image_results[:contempt_avg],
-      disgust: users_image_results[:disgust_avg],
-      fear: users_image_results[:fear_avg],
-      happiness: users_image_results[:happiness_avg],
-      neutral: users_image_results[:neutral_avg],
-      surprise: users_image_results[:surprise_avg],
+      anger: image_results[:anger_avg],
+      contempt: image_results[:contempt_avg],
+      disgust: image_results[:disgust_avg],
+      fear: image_results[:fear_avg],
+      happiness: image_results[:happiness_avg],
+      neutral: image_results[:neutral_avg],
+      surprise: image_results[:surprise_avg],
     }
   end
 

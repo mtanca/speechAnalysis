@@ -41,4 +41,16 @@ class SpeechResultsController < ApplicationController
     def authorized?(user)
       user == current_user
     end
+
+    def handle_results(speech_result, image_results)
+      if speech_result.generate_analysis(speech_result.transcript.gsub(/\P{ASCII}/, "")) && speech_result.keywords.any?
+        add_image_results(speech_result, image_results)
+
+        render json: speech_result, include: create_options
+      else
+        speech_result.destroy
+
+        render json: { errors: "Forbidden" }, status: 403
+      end
+    end
 end
